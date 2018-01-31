@@ -1,0 +1,468 @@
+---
+title: "Univariate Exploratory Data Analysis on New York Air Quality Dataset"
+author: "Arjun Dutta"
+date: "31 Jan 2018"
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+geometry: margin=.5in
+fontsize: 12pt
+always_allow_html: yes
+always_allow_pdf: yes
+---
+# _A. About the Dataset_
+
+## __Data Set__
+New York Air Quality Measurements
+
+## __Description__
+
+Daily air quality measurements in New York, May to September 1973.
+
+## __Format__
+A data frame with 153 observations on 6 variables.
+
+* __Ozone	:__	numeric Ozone (ppb)
+
+
+* __Solar.R	:__	 numeric  Solar R (lang)
+
+
+* __Wind	:__	 numeric  Wind (mph)
+
+
+* __Temp	:__	 numeric  Temperature (degrees F)
+
+
+* __Month	:__	 numeric  Month (1--12)
+
+
+* __Day	  :__	 numeric  Day of month (1--31)
+
+## __Details__
+Daily readings of the following air quality values for May 1, 1973 (a Tuesday) to September 30, 1973.
+
+* __Ozone:__ Mean ozone in parts per billion from 1300 to 1500 hours at Roosevelt Island
+
+* __Solar.R:__ Solar radiation in Langleys in the frequency band 4000-7700 Angstroms from 0800 to 1200 hours at Central Park
+
+* __Wind:__ Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport
+
+* __Temp:__ Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
+
+## __Source:__
+
+The data were obtained from the New York State Department of Conservation (__ozone data__) and the National Weather Service (__meteorological data__).
+
+# _B. Analyzing the Structure of the Data_
+
+```{r ,echo=F ,message=F,warning=F,results='hide'}
+#Packages Deployed
+load.libraries <- c('e1071','dplyr','datasets','VIM')
+#if not present identify and download
+install.lib <- load.libraries[!load.libraries %in% installed.packages()]
+sapply(install.lib, install.packages)
+#Load the packages
+sapply(load.libraries, require, character = TRUE)
+```
+
+Here we show the Data Structure of the dataset using the __class()__ function, Dimension of the dataset by __dim()__ and Data types of each variable by using __glimpse()__ function from __base__ and __dplyr__ packages in R.Next identify the data type and category of the variables.
+
+## __DataStructure__
+```{r,echo=F,comment=NA}
+#Data Structure of the Dataset
+class(airquality)
+```
+
+## __Dimension__
+```{r,echo=F,comment=NA}
+#Dimension of the Dataset
+dim(airquality)
+```
+
+## __Data Types__
+```{r,echo=F,comment=NA}
+#Data Type of Each Variable in the Dataset
+glimpse(airquality)
+```
+
+The Data Structure of the dataset is a dataframe with Dimension of 153 rows and 6 columns and Data types are __int__ and __dbl__ i.e. integer and double(numeric) respectively.
+
+## __Category of the Variable__ 
+The variable with __int__ and __dbl__ data type are of the format of continuous variable.
+
+# _C. Outlier Detection and Treatment_
+
+## __Outliers__
+
+For a given continuous variable, outliers are those observations that lie outside 1.5 * IQR, where IQR, the 'Inter Quartile Range' is the difference between 75th and 25th quartiles.
+
+## __Detecting Outliers__
+
+__Visualization and Mathematical Methods__
+
+For Visualization Methods Boxplot with range 1.5 and Histogram with break 15 is used to get a clear idea about the data.
+Quantile Capping Method is used to detect the outliers(Mathematically) in the data for each variable after Visualization.
+
+```{r,echo=F}
+#This function detects Outliers by quantile capping method
+outdetect <- function(c,w=1.5)
+{
+  h <- w*IQR(c,na.rm = T)
+  q <- quantile(c,probs=c(.25, .75),na.rm = T)
+  if(length(which(q[1]-h>c))==0)
+    cat("There are",sum(q[1]-h>c,na.rm = T),"observations below the 1st quantile\n")
+  else
+    cat("There are",sum(q[1]-h>c,na.rm = T),"observations below the 1st quantile","on rows",which(q[1]-h>c),"and the values are",boxplot.stats(c)$out,"\n")
+  if(length(which(q[2]+h<c))==0)
+    cat("There are",sum(q[2]+h<c,na.rm = T),"observations above the 3rd quantile\n")
+  else
+    cat("There are",sum(q[2]+h<c,na.rm = T),"observations above the 3rd quantile","on rows",which(q[2]+h<c),"and the values are",boxplot.stats(c)$out,"\n")
+}
+```
+
+__Ozone__
+
+```{r,echo=F,comment=NA}
+par(mfrow=c(1,2))
+boxplot(airquality$Ozone,col = "Red",main = "Boxplot of Ozone",outcol="Blue",outpch=19,boxwex=0.7,range = 1.5)
+hist(airquality$Ozone,col = "Green",main = "Histogram of Ozone", xlab = "Observations",breaks = 15)
+outdetect(airquality$Ozone)
+```
+
+__Solar.R__
+
+```{r,echo=F,comment=NA}
+par(mfrow=c(1,2))
+boxplot(airquality$Solar.R,col = "Red",main = "Boxplot of Solar.R",outcol="Blue",outpch=19,boxwex=0.7,range = 1.5)
+hist(airquality$Solar.R,col = "Green",main = "Histogram of Solar.R", xlab = "Observations",breaks = 15)
+outdetect(airquality$Solar.R)
+```
+
+__Wind__
+
+```{r,echo=F,comment=NA}
+par(mfrow=c(1,2))
+boxplot(airquality$Wind,col = "Red",main = "Boxplot of Wind",outcol="Blue",outpch=19,boxwex=0.7,range = 1.5)
+hist(airquality$Wind,col = "Green",main = "Histogram of Wind", xlab = "Observations",breaks = 15)
+outdetect(airquality$Wind)
+```
+
+__Temp__
+
+```{r,echo=F,comment=NA}
+par(mfrow=c(1,2))
+boxplot(airquality$Temp,col = "Red",main = "Boxplot of Temp",outcol="Blue",outpch=19,boxwex=0.7,range = 1.5)
+hist(airquality$Temp,col = "Green",main = "Histogram of Temp", xlab = "Observations",breaks = 15)
+outdetect(airquality$Temp)
+```
+
+From the Above Boxplots we can see that in Ozone and Wind Variables there are __Outliers__(the blue dots).
+Also on Histogram of both the variables Ozone and Wind we can see that there is a gap between observations at extreme i.e. In Ozone Histogram there is one gap in the chart and in Wind Histogram there are two gaps in chart, so they are Outliers.
+
+## __Outliers Treatment__
+
+Since the number of outliers in the dataset is very small the best approach is to remove them and carry on with the analysis but capping method can also be used.
+Percentile Capping is a method of imputing the outlier values by replacing those observations outside the lower limit with the value of 5th percentile and those that lie above the upper limit, with the value of 95th percentile of the same dataset.
+
+```{r, echo=F}
+outcap <- function(x)
+{
+qnt <- quantile(x, probs=c(.25, .75), na.rm = T)
+caps <- quantile(x, probs=c(.05, .95), na.rm = T)
+H <- 1.5 * IQR(x, na.rm = T)
+sum(x > (qnt[2] + H))
+x[x < (qnt[1] - H)] <- caps[1]
+x[x > (qnt[2] + H)] <- caps[2]
+x<<-x
+}
+```
+
+```{r,echo=F,comment=NA}
+Data <- airquality
+outcap(Data$Ozone)
+Data$Ozone <- x
+outcap(Data$Wind)
+Data$Wind <- x
+Data[c(9,18,48,62,117),c(1,3)]
+```
+
+Now check the 9th, 18th and 48th value of Wind and 62nd 117th value of Ozone variable the Varibles are free of Outliers so we move to treat Missing Values.
+
+# _D. Missing Value Detection and Treatment_
+
+## __Missing Values__
+
+Missing data in the training data set can reduce the power / fit of a model or can lead to a biased model because we have not analysed the behavior and relationship with other variables correctly. It can lead to wrong prediction or classification.
+
+## __Detecting Missing Values__
+
+__Mathematical Methods__
+
+To check for __Missing Value__ call the __summary()__ on the dataset.
+
+__Summary of the Data__
+
+```{r, echo=F,comment=NA}
+#Summary of the Data
+summary(Data[-c(5,6)])
+```
+
+See that on Ozone there are 37 NA's and on Solar.R there are 7 NA's.
+
+__Names of the Columns which contains Missing Values__
+```{r, echo=F,comment=NA}
+#Names of the Variables which contains Missing Values
+colnames(Data)[colSums(is.na(Data)) > 0]
+```
+
+__Percentage of Columns and Rows which contains Missing Values__
+
+Assuming the data is __Missing Completly At Random__, too much missing data can be a problem too. A safe maximum threshold is 5% of the total for large datasets. If missing data for a certain Variable is more than 5% then leave that Variable out. Let's check the columns and rows where more than 5% of the data is missing using a simple function :-
+```{r, echo=F}
+PerMiss <- function(x){sum(is.na(x))/length(x)*100}
+```
+__Columns__
+```{r, echo=F,comment=NA}
+apply(Data[c(1,2)],2,PerMiss)
+```
+__Rows__
+```{r, echo=F,comment=NA}
+apply(Data,1,PerMiss)
+```
+
+We see that Ozone is missing almost 25% of the datapoints, therefore we might consider either dropping it from the analysis or gather more measurements. The Wind variables have below 5% threshold so we can keep them. As far as the Rows are concerned, missing just one feature leads to a 17% missing data per sample. Row Observations that are missing 2 or more Variables (>34%), should be dropped if possible.
+
+__Patterns and Visualizations of Missing Values__
+
+The mice package provides a nice function md.pattern() to get a better understanding of the pattern of missing data.
+__Patterns__
+```{r, echo=F,comment=NA,message=FALSE,warning=FALSE,error=FALSE}
+library(mice)
+md.pattern(Data)
+```
+
+The output tells us that 44 samples are complete, 37 samples miss only the Ozone measurement, 7 samples miss only the Solar.R value.
+
+A perhaps more helpful visual representation can be obtained using the VIM package as follows
+__Visualizations__
+```{r, echo=F,comment=NA,message=FALSE,warning=FALSE,error=FALSE}
+library(VIM)
+aggr_plot <-  aggr(Data[c(1,2)], col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(Data[c(1,2)]), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+The plot helps us understanding that almost 72% of the samples are not missing any information, 24% are missing the Ozone value, and the remaining ones show other missing patterns. Through this approach the situation looks a bit clearer in my opinion.
+
+Another helpful visual approach is a special box plot
+
+```{r,echo=F,comment=NA,message=FALSE,warning=FALSE,error=FALSE}
+marginplot(Data[c(1,2)])
+```
+
+Obviously here we are constrained at plotting 2 variables at a time only, but nevertheless we can gather some interesting insights.
+The red box plot on the left shows the distribution of Solar.R with Ozone missing while the blue box plot shows the distribution of the remaining datapoints. Likewise for the Ozone box plots at the bottom of the graph.
+If our assumption of MCAR data is correct, then we expect the red and blue box plots to be very similar.
+
+## __Missing Value Treatment__
+
+The mice() function takes care of the imputing process.PMM (Predictive Mean Matching) - technique is used because it is suitable for numeric variables.
+
+```{r,echo=FALSE,comment=NA,message=FALSE,warning=FALSE,error=FALSE,results="hide"}
+tempData <- mice(Data,m=5,maxit=50,meth='pmm',seed=500)
+```
+__Summary of Missing Values__
+```{r,echo=F,comment=NA}
+summary(tempData)
+Data <- complete(tempData,1)
+```
+__Summary of the Dataset(Before Treating Missing Values and Outlier)__
+```{r,echo=F,comment=NA}
+summary(airquality[c(1,2)])
+```
+__Summary of the Dataset(after Treating Missing Values and Outlier)__
+```{r,echo=F,comment=NA}
+summary(Data[c(1,2)])
+```
+__Conclusions__
+If we compare the summaries of both the Datasets we can see that the values are not so much deviated from their respective summaries, so we can conclude that taking __Percentile Capping as Outlier Imputation__ and __Predictive Mean Matching as Missing Value Imputation__ was a right choice.
+
+# _E. Feature Engineering and Analysis_
+
+## __Skewness Transformation__
+
+```{r,echo=F}
+Viz <- function(x){
+  h1 <- hist(x,col="antiquewhite3",main="Histogram",xlab="Variables");
+  xfit<-seq(min(x),max(x),length=40) 
+  yfit<-dnorm(xfit,mean=mean(x),sd=sd(x)) 
+  yfit <- yfit*diff(h1$mids[1:2])*length(x)
+  lines(xfit, yfit, col="black", lwd=2)
+}
+```
+
+### __For Ozone__
+
+__Before Transformation Histogram__
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Viz(Data$Ozone)
+skewness(Data$Ozone)
+```
+
+The histogram with the density curve of Ozone clearly shows that tail of the distribution lie towards right and thus the variable is Right Skewed.So we need to transform the Variable.
+
+__After Transformation Histogram__
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Ozone_T <- log(Data$Ozone+1)
+Viz(Ozone_T)
+skewness(Ozone_T)
+```
+
+After __Log Transformation__ the histogram with the density curve of Ozone clearly shows that maximum frequency of the values lie  slightly towards left and thus the variable is nearly skewed and so the data is from normal population. Also the skewness is much close to 0. 
+
+__QQPlot__
+
+```{r,echo=F,fig.width=8, fig.height=6}
+par(mfrow=c(1,2))
+qqnorm(Data$Ozone,pch=16,main="Before Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Data$Ozone, col = 2)
+qqnorm(log(Data$Ozone+1),pch=16,main="After Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(log(Data$Ozone+1), col = 2)
+```
+
+__QQPlot__ The above QQ plot clearly shows that most of the values lies above the normal line but more or less close to it. So we can interpret that the data is surely from a normal distribution.
+
+__Hypothesis testing:__
+```{r,echo=FALSE,comment=NA}
+shapiro.test(Ozone_T)
+```
+
+If p is more than .01 {$\alpha$}, we can be 99% {$(1-\alpha)100\%$} certain that the data are normally distributed.
+
+### __For Solar.R__
+
+__Before Transformation Histogram__
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Viz(Data$Solar.R)
+skewness(Data$Solar.R)
+```
+
+The histogram with the density curve of Solar.R clearly shows that tail of the distribution lie towards left and thus the variable is Left Skewed.So we need to transform the Variable.
+
+__After Transformation Histogram__ 
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Solar_T <- (Data$Solar.R)^2
+Viz(Solar_T)
+skewness(Solar_T)
+```
+
+After __Square Transformation__ the histogram with the density curve of Solar.R clearly shows that maximum frequency of the values lie slightly towards left and thus the variable is nearly skewed and so the data is from normal population. Also the skewness is much close to 0. 
+
+__QQPlot__
+
+```{r,echo=F,fig.width=8, fig.height=6}
+par(mfrow=c(1,2))
+qqnorm(Data$Solar.R,pch=16,main="Before Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Data$Solar.R, col = 2)
+qqnorm(Solar_T,pch=16,main="After Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Solar_T, col = 2)
+```
+
+__QQPlot__ The above QQ plot clearly shows that most of the values lies above the normal line but more or less close to it. So we can interpret that the data is surely from a normal distribution.
+
+```{r,echo=F,comment=NA}
+shapiro.test(Solar_T)
+```
+
+The distribution is slightly Skewed and is not normal even after transformation but it is not skewed like before.
+
+### __For Wind__
+
+__Histogram__
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Viz(Data$Wind)
+skewness(Data$Wind)  #right positive
+```
+
+The histogram with the density curve of Wind clearly shows that the distribution is normally distributed.
+
+__QQPlot__
+
+```{r,echo=F,fig.width=8, fig.height=6}
+qqnorm(Data$Wind,pch=16,main="QQplot for Wind",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Data$Wind, col = 2)
+```
+
+__QQPlot__ The above QQ plot clearly shows that most of the values lies above the normal line but more or less close to it. So we can interpret that the data is surely from a normal distribution.
+
+__Hypothesis testing:__
+```{r,echo=FALSE,comment=NA}
+shapiro.test(Data$Wind)
+```
+
+If p is more than .01 {$\alpha$}, we can be 99% {$(1-\alpha)100\%$} certain that the data are normally distributed.
+
+### __For Temp__
+
+__Before Transformation Histogram__
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Viz(Data$Temp)
+skewness(Data$Temp)
+```
+
+The histogram with the density curve of Ozone clearly shows that tail of the distribution lie towards left and thus the variable is Left Skewed.So we need to transform the Variable.
+
+__After Transformation Histogram__ 
+
+```{r,echo=F,fig.width=8, fig.height=6,comment=NA}
+Temp_T <- Data$Temp^2
+Viz(Temp_T)
+skewness(Temp_T)
+```
+
+After __Square Transformation__ the histogram with the density curve of Temp clearly shows that the variable is slightly skewed and so the data is from normal population. Also the skewness is much close to 0. 
+
+__QQPlot__
+
+```{r,echo=F,fig.width=8, fig.height=6}
+par(mfrow=c(1,2))
+qqnorm(Data$Temp,pch=16,main="Before Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Data$Temp, col = 2)
+qqnorm(Temp_T,pch=16,main="After Transformation",xlab="Sample quantiles of Ozone",ylab="Theoretical quantiles")
+qqline(Temp_T, col = 2)
+```
+
+__QQPlot__ The above QQ plot clearly shows that most of the values lies above the normal line but more or less close to it. So we can interpret that the data is surely from a normal distribution.
+
+__Hypothesis testing:__
+```{r,echo=FALSE,comment=NA}
+shapiro.test(Temp_T)
+```
+
+If p is more than .01 {$\alpha$}, we can be 99% {$(1-\alpha)100\%$} certain that the data are normally distributed.
+
+```{r,echo=FALSE,comment=NA}
+Data$Ozone <- Ozone_T
+Data$Solar.R <- Solar_T
+Data$Temp <- Temp_T
+```
+
+## __Scale Transformation__
+
+This transformation is a must if you have data in different scales, this transformation does not change the shape of the variable distribution.
+
+```{r,echo=F}
+T <- Data[c(5,6)]
+Data <- apply(Data[-c(5,6)],2,scale)
+Data <- cbind(Data,T)
+head(Data,50)
+```
+
+Now that the Data has been transformed and made consistent these are very important steps in Exploratory Data Analysis before Model Fitting. The quality and effort invested in data exploration can make a diffrence in building a good model from bad model.
