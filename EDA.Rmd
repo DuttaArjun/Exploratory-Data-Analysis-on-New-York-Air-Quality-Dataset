@@ -1,18 +1,18 @@
 ---
-title: "Univariate Exploratory Data Analysis on New York Air Quality Dataset"
+title: "Exploratory Data Analysis on New York Air Quality Dataset"
 author: "Arjun Dutta"
 date: "31 Jan 2018"
 output:
-  pdf_document: default
-  word_document: default
   html_document:
-    df_print: paged
+    toc: TRUE
+    toc_float: TRUE
+    theme: united
+    highlight: tango
 geometry: margin=.5in
 fontsize: 12pt
 always_allow_html: yes
-always_allow_pdf: yes
 ---
-# _A. About the Dataset_
+# _About the Dataset_
 
 ## __Data Set__
 New York Air Quality Measurements
@@ -56,7 +56,7 @@ Daily readings of the following air quality values for May 1, 1973 (a Tuesday) t
 
 The data were obtained from the New York State Department of Conservation (__ozone data__) and the National Weather Service (__meteorological data__).
 
-# _B. Analyzing the Structure of the Data_
+# _Analyzing the Structure of the Data_
 
 ```{r ,echo=F ,message=F,warning=F,results='hide'}
 #Packages Deployed
@@ -93,7 +93,7 @@ The Data Structure of the dataset is a dataframe with Dimension of 153 rows and 
 ## __Category of the Variable__ 
 The variable with __int__ and __dbl__ data type are of the format of continuous variable.
 
-# _C. Outlier Detection and Treatment_
+# _Outlier Detection and Treatment_
 
 ## __Outliers__
 
@@ -191,7 +191,7 @@ Data[c(9,18,48,62,117),c(1,3)]
 
 Now check the 9th, 18th and 48th value of Wind and 62nd 117th value of Ozone variable the Varibles are free of Outliers so we move to treat Missing Values.
 
-# _D. Missing Value Detection and Treatment_
+# _Missing Value Detection and Treatment_
 
 ## __Missing Values__
 
@@ -288,7 +288,7 @@ summary(Data[c(1,2)])
 __Conclusions__
 If we compare the summaries of both the Datasets we can see that the values are not so much deviated from their respective summaries, so we can conclude that taking __Percentile Capping as Outlier Imputation__ and __Predictive Mean Matching as Missing Value Imputation__ was a right choice.
 
-# _E. Feature Engineering and Analysis_
+# _Feature Engineering and Analysis_
 
 ## __Skewness Transformation__
 
